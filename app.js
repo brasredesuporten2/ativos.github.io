@@ -109,10 +109,11 @@ async function carregarTabela() {
 /* =========================
    LOGOUT
 ========================= */
-function logout() {
+window.logout = function () {
   localStorage.removeItem("usuarioLogado");
   window.location.href = "index.html";
-}
+};
+
 
 /* =========================
    INICIALIZAÇÃO
@@ -120,5 +121,6 @@ function logout() {
 document.addEventListener("DOMContentLoaded", () => {
   carregarTabela();
 });
+
 
 
