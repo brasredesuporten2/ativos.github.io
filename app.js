@@ -1,5 +1,5 @@
 /* =========================
-   LOGIN SIMPLES
+   LOGIN
 ========================= */
 const usuarioLogado = localStorage.getItem("usuarioLogado");
 if (!usuarioLogado) {
@@ -7,34 +7,29 @@ if (!usuarioLogado) {
 }
 
 /* =========================
-   SUPABASE
+   SUPABASE (ÚNICA VEZ)
 ========================= */
-const SUPABASE_URL = "https://dehcelrslysgnfbulaer.supabase.co";
-const SUPABASE_KEY = "SUA_CHAVE_ANON_PUBLICA_AQUI";
+if (!window.supabaseClient) {
+  window.supabaseClient = window.supabase.createClient(
+    "https://dehcelrslysgnfbulaer.supabase.co",
+    "SUA_CHAVE_ANON_PUBLICA"
+  );
+}
 
-const supabase = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+const db = window.supabaseClient;
 
 /* =========================
-   EXPOR SUPABASE GLOBAL
-   (export.js precisa disso)
+   ELEMENTOS
 ========================= */
-window.supabase = supabase;
+const $ = id => document.getElementById(id);
 
-/* =========================
-   ELEMENTOS (SEGURO)
-========================= */
-const el = id => document.getElementById(id);
-
-const funcionario = el("funcionario");
-const setor       = el("setor");
-const equipamento = el("equipamento");
-const serial      = el("serial");
-const dataEntrega = el("dataEntrega");
-const tabela      = el("tabela");
-const usuarioEl   = el("usuario");
+const funcionario = $("funcionario");
+const setor       = $("setor");
+const equipamento = $("equipamento");
+const serial      = $("serial");
+const dataEntrega = $("dataEntrega");
+const tabela      = $("tabela");
+const usuarioEl   = $("usuario");
 
 /* =========================
    USUÁRIO
@@ -46,9 +41,9 @@ if (usuarioEl) {
 /* =========================
    REGISTRAR ENTREGA
 ========================= */
-async function registrarEntrega() {
+window.registrarEntrega = async function () {
   if (!funcionario || !equipamento || !dataEntrega) {
-    alert("Erro: campos do formulário não encontrados");
+    alert("Erro: campos não encontrados");
     return;
   }
 
@@ -57,7 +52,7 @@ async function registrarEntrega() {
     return;
   }
 
-  const { error } = await supabase.from("entregas").insert([{
+  const { error } = await db.from("entregas").insert([{
     funcionario: funcionario.value,
     setor: setor?.value || null,
     equipamento: equipamento.value,
@@ -68,14 +63,14 @@ async function registrarEntrega() {
   }]);
 
   if (error) {
-    console.error("Erro Supabase:", error);
+    console.error("Supabase:", error);
     alert("Erro ao salvar");
     return;
   }
 
   limparFormulario();
   carregarTabela();
-}
+};
 
 /* =========================
    LIMPAR FORM
@@ -92,7 +87,7 @@ function limparFormulario() {
    DEVOLVER
 ========================= */
 window.devolver = async function (id) {
-  const { error } = await supabase
+  const { error } = await db
     .from("entregas")
     .update({
       status: "DEVOLVIDO",
@@ -115,7 +110,7 @@ window.devolver = async function (id) {
 async function carregarTabela() {
   if (!tabela) return;
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from("entregas")
     .select("*")
     .order("id", { ascending: false });
