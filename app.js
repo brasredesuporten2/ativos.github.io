@@ -6,10 +6,10 @@ if (!localStorage.getItem("usuarioLogado")) {
 }
 
 /* =========================
-   CONFIGURAÇÃO SUPABASE
+   SUPABASE
 ========================= */
 const SUPABASE_URL = "https://dehcelrslysgnfbulaer.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlaGNlbHJzbHlzZ25mYnVsYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzOTIxMTksImV4cCI6MjA4Mzk2ODExOX0.2BPHu1yLi7rB5O4BlgoTOAk4diXGa_nXO3HSdBHFtFw";
+const SUPABASE_KEY = "SUA_CHAVE_ANON_PUBLICA";
 
 const supabase = window.supabase.createClient(
   SUPABASE_URL,
@@ -17,7 +17,17 @@ const supabase = window.supabase.createClient(
 );
 
 /* =========================
-   USUÁRIO LOGADO
+   ELEMENTOS
+========================= */
+const funcionario = document.getElementById("funcionario");
+const setor       = document.getElementById("setor");
+const equipamento = document.getElementById("equipamento");
+const serial      = document.getElementById("serial");
+const dataEntrega = document.getElementById("dataEntrega");
+const tabela      = document.getElementById("tabela");
+
+/* =========================
+   USUÁRIO
 ========================= */
 const usuario = localStorage.getItem("usuarioLogado");
 document.getElementById("usuario").innerText = "Usuário: " + usuario;
@@ -31,33 +41,28 @@ async function registrarEntrega() {
     return;
   }
 
-  const { error } = await supabase
-    .from("entregas")
-    .insert([
-      {
-        funcionario: funcionario.value,
-        setor: setor.value,
-        equipamento: equipamento.value,
-        serial: serial.value || null,
-        data_entrega: dataEntrega.value,
-        status: "EM USO",
-        usuario: usuario
-      }
-    ]);
+  const { error } = await supabase.from("entregas").insert([{
+    funcionario: funcionario.value,
+    setor: setor.value || null,
+    equipamento: equipamento.value,
+    serial: serial.value || null,
+    data_entrega: dataEntrega.value,
+    status: "EM USO",
+    usuario: usuario
+  }]);
 
   if (error) {
     console.error(error);
-    alert("Erro ao salvar registro");
+    alert("Erro ao registrar entrega");
     return;
   }
 
-  alert("Entrega registrada com sucesso");
   limparFormulario();
   carregarTabela();
 }
 
 /* =========================
-   LIMPAR FORMULÁRIO
+   LIMPAR FORM
 ========================= */
 function limparFormulario() {
   funcionario.value = "";
@@ -65,6 +70,27 @@ function limparFormulario() {
   equipamento.value = "";
   serial.value = "";
   dataEntrega.value = "";
+}
+
+/* =========================
+   DEVOLVER
+========================= */
+async function devolver(id) {
+  const { error } = await supabase
+    .from("entregas")
+    .update({
+      status: "DEVOLVIDO",
+      data_devolucao: new Date().toISOString().split("T")[0]
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error(error);
+    alert("Erro ao devolver");
+    return;
+  }
+
+  carregarTabela();
 }
 
 /* =========================
@@ -95,11 +121,14 @@ async function carregarTabela() {
           ? new Date(d.data_devolucao).toLocaleDateString("pt-BR")
           : "-"}</td>
         <td>
-          <span class="badge ${
-            d.status === "EM USO" ? "bg-warning" : "bg-success"
-          }">
+          <span class="badge ${d.status === "EM USO" ? "bg-warning" : "bg-success"}">
             ${d.status}
           </span>
+        </td>
+        <td>
+          ${d.status === "EM USO"
+            ? `<button class="btn btn-sm btn-success" onclick="devolver(${d.id})">Devolver</button>`
+            : ""}
         </td>
       </tr>
     `;
@@ -107,20 +136,14 @@ async function carregarTabela() {
 }
 
 /* =========================
-   LOGOUT
+   LOGOUT (GLOBAL)
 ========================= */
 window.logout = function () {
   localStorage.removeItem("usuarioLogado");
   window.location.href = "index.html";
 };
 
-
 /* =========================
-   INICIALIZAÇÃO
+   INIT
 ========================= */
-document.addEventListener("DOMContentLoaded", () => {
-  carregarTabela();
-});
-
-
-
+document.addEventListener("DOMContentLoaded", carregarTabela);
