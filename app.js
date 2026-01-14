@@ -1,7 +1,8 @@
 /* =========================
-   PROTEÇÃO DE LOGIN
+   LOGIN SIMPLES
 ========================= */
-if (!localStorage.getItem("usuarioLogado")) {
+const usuarioLogado = localStorage.getItem("usuarioLogado");
+if (!usuarioLogado) {
   window.location.href = "index.html";
 }
 
@@ -9,7 +10,7 @@ if (!localStorage.getItem("usuarioLogado")) {
    SUPABASE
 ========================= */
 const SUPABASE_URL = "https://dehcelrslysgnfbulaer.supabase.co";
-const SUPABASE_KEY = "SUA_CHAVE_ANON_PUBLICA";
+const SUPABASE_KEY = "SUA_CHAVE_ANON_PUBLICA_AQUI";
 
 const supabase = window.supabase.createClient(
   SUPABASE_URL,
@@ -17,25 +18,40 @@ const supabase = window.supabase.createClient(
 );
 
 /* =========================
-   ELEMENTOS
+   EXPOR SUPABASE GLOBAL
+   (export.js precisa disso)
 ========================= */
-const funcionario = document.getElementById("funcionario");
-const setor       = document.getElementById("setor");
-const equipamento = document.getElementById("equipamento");
-const serial      = document.getElementById("serial");
-const dataEntrega = document.getElementById("dataEntrega");
-const tabela      = document.getElementById("tabela");
+window.supabase = supabase;
+
+/* =========================
+   ELEMENTOS (SEGURO)
+========================= */
+const el = id => document.getElementById(id);
+
+const funcionario = el("funcionario");
+const setor       = el("setor");
+const equipamento = el("equipamento");
+const serial      = el("serial");
+const dataEntrega = el("dataEntrega");
+const tabela      = el("tabela");
+const usuarioEl   = el("usuario");
 
 /* =========================
    USUÁRIO
 ========================= */
-const usuario = localStorage.getItem("usuarioLogado");
-document.getElementById("usuario").innerText = "Usuário: " + usuario;
+if (usuarioEl) {
+  usuarioEl.innerText = "Usuário: " + usuarioLogado;
+}
 
 /* =========================
    REGISTRAR ENTREGA
 ========================= */
 async function registrarEntrega() {
+  if (!funcionario || !equipamento || !dataEntrega) {
+    alert("Erro: campos do formulário não encontrados");
+    return;
+  }
+
   if (!funcionario.value || !equipamento.value || !dataEntrega.value) {
     alert("Preencha os campos obrigatórios");
     return;
@@ -43,17 +59,17 @@ async function registrarEntrega() {
 
   const { error } = await supabase.from("entregas").insert([{
     funcionario: funcionario.value,
-    setor: setor.value || null,
+    setor: setor?.value || null,
     equipamento: equipamento.value,
-    serial: serial.value || null,
+    serial: serial?.value || null,
     data_entrega: dataEntrega.value,
     status: "EM USO",
-    usuario: usuario
+    usuario: usuarioLogado
   }]);
 
   if (error) {
-    console.error(error);
-    alert("Erro ao registrar entrega");
+    console.error("Erro Supabase:", error);
+    alert("Erro ao salvar");
     return;
   }
 
@@ -65,17 +81,17 @@ async function registrarEntrega() {
    LIMPAR FORM
 ========================= */
 function limparFormulario() {
-  funcionario.value = "";
-  setor.value = "";
-  equipamento.value = "";
-  serial.value = "";
-  dataEntrega.value = "";
+  if (funcionario) funcionario.value = "";
+  if (setor) setor.value = "";
+  if (equipamento) equipamento.value = "";
+  if (serial) serial.value = "";
+  if (dataEntrega) dataEntrega.value = "";
 }
 
 /* =========================
    DEVOLVER
 ========================= */
-async function devolver(id) {
+window.devolver = async function (id) {
   const { error } = await supabase
     .from("entregas")
     .update({
@@ -91,19 +107,21 @@ async function devolver(id) {
   }
 
   carregarTabela();
-}
+};
 
 /* =========================
    CARREGAR TABELA
 ========================= */
 async function carregarTabela() {
+  if (!tabela) return;
+
   const { data, error } = await supabase
     .from("entregas")
     .select("*")
     .order("id", { ascending: false });
 
   if (error) {
-    console.error(error);
+    console.error("Erro ao carregar:", error);
     return;
   }
 
@@ -120,14 +138,10 @@ async function carregarTabela() {
         <td>${d.data_devolucao
           ? new Date(d.data_devolucao).toLocaleDateString("pt-BR")
           : "-"}</td>
-        <td>
-          <span class="badge ${d.status === "EM USO" ? "bg-warning" : "bg-success"}">
-            ${d.status}
-          </span>
-        </td>
+        <td>${d.status}</td>
         <td>
           ${d.status === "EM USO"
-            ? `<button class="btn btn-sm btn-success" onclick="devolver(${d.id})">Devolver</button>`
+            ? `<button onclick="devolver(${d.id})">Devolver</button>`
             : ""}
         </td>
       </tr>
