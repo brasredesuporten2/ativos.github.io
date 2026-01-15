@@ -83,45 +83,38 @@ async function carregarTabela() {
   tabela.innerHTML = "";
 
   data.forEach(d => {
-  tabela.innerHTML += `
-    <tr>
-      <td>${d.funcionario}</td>
-      <td>${d.setor || "-"}</td>
-      <td>${d.equipamento}</td>
-      <td>${d.serial || "-"}</td>
-      <td>${new Date(d.data_entrega).toLocaleDateString("pt-BR")}</td>
-      <td>${d.data_devolucao
-        ? new Date(d.data_devolucao).toLocaleDateString("pt-BR")
-        : "-"}</td>
-      <td>${d.status}</td>
-      <td>
-        ${
-          d.status === "EM USO"
-            ? `<button onclick="devolverEquipamento(${d.id})">Devolver</button>`
-            : "-"
-        }
-      </td>
-    </tr>
-  `;
-});
+    tabela.innerHTML += `
+      <tr>
+        <td>${d.funcionario}</td>
+        <td>${d.setor || "-"}</td>
+        <td>${d.equipamento}</td>
+        <td>${d.serial || "-"}</td>
+        <td>${new Date(d.data_entrega).toLocaleDateString("pt-BR")}</td>
+        <td>${d.data_devolucao
+          ? new Date(d.data_devolucao).toLocaleDateString("pt-BR")
+          : "-"}</td>
+        <td>${d.status}</td>
+        <td>
+          ${
+            d.status === "EM USO"
+              ? `<button onclick="devolverEquipamento(${d.id})">Devolver</button>`
+              : "-"
+          }
+        </td>
+      </tr>
+    `;
+  });
 }
 
 /* =============================
-   LOGOUT (FUNCIONA)
+   DEVOLVER EQUIPAMENTO (COM CONFIRMAÇÃO)
 ============================= */
-function logout() {
-  localStorage.removeItem("usuarioLogado");
-  window.location.href = "index.html";
-}
-
 async function devolverEquipamento(id) {
   const confirmar = confirm(
     "Tem certeza que deseja registrar a DEVOLUÇÃO deste equipamento?\n\nEssa ação não poderá ser desfeita."
   );
 
-  if (!confirmar) {
-    return; // usuário cancelou
-  }
+  if (!confirmar) return;
 
   const hoje = new Date().toISOString().split("T")[0];
 
@@ -143,12 +136,15 @@ async function devolverEquipamento(id) {
   carregarTabela();
 }
 
+/* =============================
+   LOGOUT
+============================= */
+function logout() {
+  localStorage.removeItem("usuarioLogado");
+  window.location.href = "index.html";
 }
 
 /* =============================
-   INICIAR SISTEMA
+   INICIAR
 ============================= */
 document.addEventListener("DOMContentLoaded", carregarTabela);
-
-
-
