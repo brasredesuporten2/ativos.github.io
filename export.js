@@ -1,24 +1,55 @@
 async function exportarExcel() {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from("entregas")
     .select("*")
-    .order("id", { ascending: false });
+    .order("id", { ascending: true });
 
   if (error) {
+    alert("Erro ao exportar dados");
     console.error(error);
-    alert("Erro ao exportar");
     return;
   }
 
-  let csv = "Funcionário,Setor,Equipamento,Serial,Entrega,Devolução,Status,Usuário\n";
+  if (!data || data.length === 0) {
+    alert("Nenhum dado para exportar");
+    return;
+  }
+
+  let csv = "Funcionário;Setor;Equipamento;Serial;Data Entrega;Data Devolução;Status;Usuário\n";
 
   data.forEach(d => {
-    csv += `"${d.funcionario}","${d.setor || ""}","${d.equipamento}","${d.serial || ""}","${d.data_entrega}","${d.data_devolucao || ""}","${d.status}","${d.usuario}"\n`;
+    csv += `"${d.funcionario}";`;
+    csv += `"${d.setor || ""}";`;
+    csv += `"${d.equipamento}";`;
+    csv += `"${d.serial || ""}";`;
+    csv += `"${formatarData(d.data_entrega)}";`;
+    csv += `"${formatarData(d.data_devolucao)}";`;
+    csv += `"${d.status}";`;
+    csv += `"${d.usuario}"\n`;
   });
 
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  baixarCSV(csv, "controle_ativos.csv");
+}
+
+/* =============================
+   FUNÇÕES AUXILIARES
+============================= */
+function formatarData(data) {
+  if (!data) return "";
+  return new Date(data).toLocaleDateString("pt-BR");
+}
+
+function baixarCSV(conteudo, nomeArquivo) {
+  const blob = new Blob(["\ufeff" + conteudo], {
+    type: "text/csv;charset=utf-8;"
+  });
+
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.download = "controle_ativos_internos.csv";
+  link.download = nomeArquivo;
+  link.style.display = "none";
+
+  document.body.appendChild(link);
   link.click();
+  document.body.removeChild(link);
 }
