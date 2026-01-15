@@ -114,8 +114,33 @@ function logout() {
   window.location.href = "index.html";
 }
 
+async function devolverEquipamento(id) {
+  const confirmar = confirm("Confirmar devolução deste equipamento?");
+  if (!confirmar) return;
+
+  const hoje = new Date().toISOString().split("T")[0];
+
+  const { error } = await supabaseClient
+    .from("entregas")
+    .update({
+      status: "DEVOLVIDO",
+      data_devolucao: hoje
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Erro ao devolver:", error);
+    alert("Erro ao registrar devolução");
+    return;
+  }
+
+  alert("Equipamento devolvido com sucesso");
+  carregarTabela();
+}
+
 /* =============================
    INICIAR SISTEMA
 ============================= */
 document.addEventListener("DOMContentLoaded", carregarTabela);
+
 
