@@ -115,8 +115,13 @@ function logout() {
 }
 
 async function devolverEquipamento(id) {
-  const confirmar = confirm("Confirmar devolução deste equipamento?");
-  if (!confirmar) return;
+  const confirmar = confirm(
+    "Tem certeza que deseja registrar a DEVOLUÇÃO deste equipamento?\n\nEssa ação não poderá ser desfeita."
+  );
+
+  if (!confirmar) {
+    return; // usuário cancelou
+  }
 
   const hoje = new Date().toISOString().split("T")[0];
 
@@ -138,9 +143,12 @@ async function devolverEquipamento(id) {
   carregarTabela();
 }
 
+}
+
 /* =============================
    INICIAR SISTEMA
 ============================= */
 document.addEventListener("DOMContentLoaded", carregarTabela);
+
 
 
