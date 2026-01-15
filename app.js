@@ -83,20 +83,27 @@ async function carregarTabela() {
   tabela.innerHTML = "";
 
   data.forEach(d => {
-    tabela.innerHTML += `
-      <tr>
-        <td>${d.funcionario}</td>
-        <td>${d.setor || "-"}</td>
-        <td>${d.equipamento}</td>
-        <td>${d.serial || "-"}</td>
-        <td>${new Date(d.data_entrega).toLocaleDateString("pt-BR")}</td>
-        <td>${d.data_devolucao
-          ? new Date(d.data_devolucao).toLocaleDateString("pt-BR")
-          : "-"}</td>
-        <td>${d.status}</td>
-      </tr>
-    `;
-  });
+  tabela.innerHTML += `
+    <tr>
+      <td>${d.funcionario}</td>
+      <td>${d.setor || "-"}</td>
+      <td>${d.equipamento}</td>
+      <td>${d.serial || "-"}</td>
+      <td>${new Date(d.data_entrega).toLocaleDateString("pt-BR")}</td>
+      <td>${d.data_devolucao
+        ? new Date(d.data_devolucao).toLocaleDateString("pt-BR")
+        : "-"}</td>
+      <td>${d.status}</td>
+      <td>
+        ${
+          d.status === "EM USO"
+            ? `<button onclick="devolverEquipamento(${d.id})">Devolver</button>`
+            : "-"
+        }
+      </td>
+    </tr>
+  `;
+});
 }
 
 /* =============================
@@ -111,3 +118,4 @@ function logout() {
    INICIAR SISTEMA
 ============================= */
 document.addEventListener("DOMContentLoaded", carregarTabela);
+
