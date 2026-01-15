@@ -12,7 +12,7 @@ if (!usuarioLogado) {
 if (!window.supabaseClient) {
   window.supabaseClient = window.supabase.createClient(
     "https://dehcelrslysgnfbulaer.supabase.co",
-    "SUA_CHAVE_ANON_PUBLICA"
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlaGNlbHJzbHlzZ25mYnVsYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzOTIxMTksImV4cCI6MjA4Mzk2ODExOX0.2BPHu1yLi7rB5O4BlgoTOAk4diXGa_nXO3HSdBHFtFw"
   );
 }
 
@@ -156,3 +156,4 @@ window.logout = function () {
    INIT
 ========================= */
 document.addEventListener("DOMContentLoaded", carregarTabela);
+
