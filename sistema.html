@@ -40,7 +40,7 @@
 <div class="card p-3 mb-3">
   <h6>Registrar Entrega</h6>
 
-  <div class="row g-2">
+  <div class="row g-2 mb-2">
     <div class="col-md-4">
       <input id="funcionario" class="form-control text-uppercase" placeholder="Funcionário">
     </div>
@@ -50,17 +50,25 @@
     <div class="col-md-4">
       <input type="date" id="dataEntrega" class="form-control">
     </div>
+  </div>
 
-    <div class="col-md-6">
-      <input id="equipamento" class="form-control text-uppercase" placeholder="Equipamento">
+  <!-- LISTA DE EQUIPAMENTOS -->
+  <div id="listaEquipamentos">
+    <div class="row g-2 mb-2 equipamento-item">
+      <div class="col-md-5">
+        <input class="form-control text-uppercase equipamento" placeholder="Equipamento">
+      </div>
+      <div class="col-md-5">
+        <input class="form-control text-uppercase serial" placeholder="Serial">
+      </div>
+      <div class="col-md-2 d-grid">
+        <button type="button" class="btn btn-outline-success" onclick="adicionarEquipamento()">+</button>
+      </div>
     </div>
-    <div class="col-md-6">
-      <input id="serial" class="form-control text-uppercase" placeholder="Serial">
-    </div>
+  </div>
 
-    <div class="col-12 d-grid">
-      <button class="btn btn-success" onclick="registrarEntrega()">Registrar Entrega</button>
-    </div>
+  <div class="d-grid">
+    <button class="btn btn-success" onclick="registrarEntrega()">Registrar Entrega</button>
   </div>
 </div>
 
