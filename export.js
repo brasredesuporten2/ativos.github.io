@@ -1,31 +1,24 @@
 function exportarExcel(tabelaId) {
   const tabela = document.getElementById(tabelaId);
-
-  if (!tabela) {
-    alert("Tabela não encontrada para exportação");
-    return;
-  }
+  if (!tabela) return;
 
   let csv = [];
   const linhas = tabela.closest("table").querySelectorAll("tr");
 
   linhas.forEach(linha => {
     let dados = [];
-    linha.querySelectorAll("th, td").forEach(coluna => {
-      let texto = coluna.innerText.replace(/\n/g, " ").trim();
-      dados.push(`"${texto}"`);
+    linha.querySelectorAll("th, td").forEach(col => {
+      dados.push(`"${col.innerText.replace(/\n/g, " ")}"`);
     });
     csv.push(dados.join(";"));
   });
 
-  const csvContent = csv.join("\n");
-  const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
+  const blob = new Blob(["\uFEFF" + csv.join("\n")], {
+    type: "text/csv;charset=utf-8;"
+  });
 
   const link = document.createElement("a");
-  link.href = url;
-  link.download = "exportacao_" + new Date().toISOString().slice(0,10) + ".csv";
-  document.body.appendChild(link);
+  link.href = URL.createObjectURL(blob);
+  link.download = "manutencao_" + new Date().toISOString().slice(0,10) + ".csv";
   link.click();
-  document.body.removeChild(link);
 }
