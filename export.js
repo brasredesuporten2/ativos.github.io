@@ -1,54 +1,30 @@
-async function exportarExcel() {
-  const { data, error } = await supabaseClient
-    .from("entregas")
-    .select("*")
-    .order("id", { ascending: true });
+function exportarExcel(tabelaId) {
+  const tabela = document.getElementById(tabelaId);
 
-  if (error) {
-    alert("Erro ao exportar dados");
-    console.error(error);
+  if (!tabela) {
+    alert("Tabela não encontrada para exportação");
     return;
   }
 
-  if (!data || data.length === 0) {
-    alert("Nenhum dado para exportar");
-    return;
-  }
+  let csv = [];
+  const linhas = tabela.closest("table").querySelectorAll("tr");
 
-  let csv = "Funcionário;Setor;Equipamento;Serial;Data Entrega;Data Devolução;Status;Usuário\n";
-
-  data.forEach(d => {
-    csv += `"${d.funcionario}";`;
-    csv += `"${d.setor || ""}";`;
-    csv += `"${d.equipamento}";`;
-    csv += `"${d.serial || ""}";`;
-    csv += `"${formatarData(d.data_entrega)}";`;
-    csv += `"${formatarData(d.data_devolucao)}";`;
-    csv += `"${d.status}";`;
-    csv += `"${d.usuario}"\n`;
+  linhas.forEach(linha => {
+    let dados = [];
+    linha.querySelectorAll("th, td").forEach(coluna => {
+      let texto = coluna.innerText.replace(/\n/g, " ").trim();
+      dados.push(`"${texto}"`);
+    });
+    csv.push(dados.join(";"));
   });
 
-  baixarCSV(csv, "controle_ativos.csv");
-}
-
-/* =============================
-   FUNÇÕES AUXILIARES
-============================= */
-function formatarData(data) {
-  if (!data) return "";
-  return new Date(data).toLocaleDateString("pt-BR");
-}
-
-function baixarCSV(conteudo, nomeArquivo) {
-  const blob = new Blob(["\ufeff" + conteudo], {
-    type: "text/csv;charset=utf-8;"
-  });
+  const csvContent = csv.join("\n");
+  const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
 
   const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = nomeArquivo;
-  link.style.display = "none";
-
+  link.href = url;
+  link.download = "exportacao_" + new Date().toISOString().slice(0,10) + ".csv";
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
