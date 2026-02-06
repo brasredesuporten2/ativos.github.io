@@ -1,22 +1,32 @@
 if (!localStorage.getItem("usuarioLogado")) {
-  location.href = "index.html";
+  window.location.href = "index.html";
 }
 
 const SUPABASE_URL = "https://dehcelrslysgnfbulaer.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlaGNlbHJzbHlzZ25mYnVsYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzOTIxMTksImV4cCI6MjA4Mzk2ODExOX0.2BPHu1yLi7rB5O4BlgoTOAk4diXGa_nXO3HSdBHFtFw";
 
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 
 const usuario = localStorage.getItem("usuarioLogado");
 document.getElementById("usuario").innerText = "Usuário: " + usuario;
 
+/* CAIXA ALTA EM TEMPO REAL */
+document.addEventListener("input", e => {
+  if (e.target.classList.contains("text-uppercase")) {
+    e.target.value = e.target.value.toUpperCase();
+  }
+});
+
 async function registrarManutencao() {
   if (!funcionario.value || !equipamento.value || !dataManutencao.value) {
-    alert("Campos obrigatórios não preenchidos");
+    alert("Preencha os campos obrigatórios");
     return;
   }
 
-  await supabaseClient.from("manutencoes").insert([{
+  const { error } = await supabaseClient.from("manutencoes").insert([{
     funcionario: funcionario.value,
     setor: setor.value,
     cidade: cidade.value,
@@ -29,38 +39,51 @@ async function registrarManutencao() {
     usuario: usuario
   }]);
 
-  limpar();
+  if (error) {
+    alert("Erro ao registrar");
+    console.error(error);
+    return;
+  }
+
+  limparFormulario();
   carregarTabela();
 }
 
-function limpar() {
-  document.querySelectorAll("input, textarea, select").forEach(el => el.value = "");
+function limparFormulario() {
+  funcionario.value = "";
+  setor.value = "";
+  cidade.value = "";
+  equipamento.value = "";
+  serial.value = "";
+  tipo.value = "";
+  descricao.value = "";
+  custo.value = "";
+  dataManutencao.value = "";
 }
 
 async function carregarTabela() {
-  let query = supabaseClient.from("manutencoes").select("*");
+  const { data, error } = await supabaseClient
+    .from("manutencoes")
+    .select("*")
+    .order("id", { ascending: false });
 
-  if (fFuncionario.value) query = query.ilike("funcionario", `%${fFuncionario.value}%`);
-  if (fSetor.value) query = query.ilike("setor", `%${fSetor.value}%`);
-  if (fCidade.value) query = query.ilike("cidade", `%${fCidade.value}%`);
-  if (fEquipamento.value) query = query.ilike("equipamento", `%${fEquipamento.value}%`);
-  if (fTipo.value) query = query.eq("tipo", fTipo.value);
-  if (dataIni.value) query = query.gte("data_manutencao", dataIni.value);
-  if (dataFim.value) query = query.lte("data_manutencao", dataFim.value);
+  if (error) {
+    console.error(error);
+    return;
+  }
 
-  const { data } = await query.order("id", { ascending: false });
+  tabelaManutencao.innerHTML = "";
 
-  tabela.innerHTML = "";
   data.forEach(d => {
-    tabela.innerHTML += `
+    tabelaManutencao.innerHTML += `
       <tr>
         <td>${d.funcionario}</td>
         <td>${d.setor || "-"}</td>
         <td>${d.cidade || "-"}</td>
         <td>${d.equipamento}</td>
         <td>${d.serial || "-"}</td>
-        <td>${d.tipo}</td>
-        <td class="descricao">${d.descricao}</td>
+        <td>${d.tipo || "-"}</td>
+        <td class="descricao">${d.descricao || "-"}</td>
         <td>${d.custo ? "R$ " + d.custo : "-"}</td>
         <td>${new Date(d.data_manutencao).toLocaleDateString("pt-BR")}</td>
         <td>${d.usuario}</td>
@@ -71,7 +94,7 @@ async function carregarTabela() {
 
 function logout() {
   localStorage.removeItem("usuarioLogado");
-  location.href = "index.html";
+  window.location.href = "index.html";
 }
 
 document.addEventListener("DOMContentLoaded", carregarTabela);
