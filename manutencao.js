@@ -2,23 +2,18 @@ if (!localStorage.getItem("usuarioLogado")) {
   window.location.href = "index.html";
 }
 
+/* SUPABASE */
 const SUPABASE_URL = "https://dehcelrslysgnfbulaer.supabase.co";
-const SUPABASE_KEY = "SUA_CHAVE_ANON_AQUI";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlaGNlbHJzbHlzZ25mYnVsYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzOTIxMTksImV4cCI6MjA4Mzk2ODExOX0.2BPHu1yLi7rB5O4BlgoTOAk4diXGa_nXO3HSdBHFtFw";
 
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
 );
 
+/* USUÁRIO */
 const usuario = localStorage.getItem("usuarioLogado");
 document.getElementById("usuario").innerText = "Usuário: " + usuario;
-
-/* CAIXA ALTA EM TEMPO REAL */
-document.addEventListener("input", e => {
-  if (e.target.classList.contains("text-uppercase")) {
-    e.target.value = e.target.value.toUpperCase();
-  }
-});
 
 /* REGISTRAR MANUTENÇÃO */
 async function registrarManutencao() {
@@ -27,18 +22,20 @@ async function registrarManutencao() {
     return;
   }
 
-  const { error } = await supabaseClient.from("manutencoes").insert([{
-    funcionario: funcionario.value,
-    setor: setor.value,
-    cidade: cidade.value,
-    equipamento: equipamento.value,
-    serial: serial.value || null,
-    tipo: tipo.value,
-    descricao: descricao.value,
-    custo: custo.value || null,
-    data_manutencao: dataManutencao.value,
-    usuario: usuario
-  }]);
+  const { error } = await supabaseClient
+    .from("manutencoes")
+    .insert([{
+      funcionario: funcionario.value,
+      setor: setor.value,
+      cidade: cidade.value,
+      equipamento: equipamento.value,
+      serial: serial.value || null,
+      tipo: tipo.value,
+      descricao: descricao.value,
+      custo: custo.value || null,
+      data_manutencao: dataManutencao.value,
+      usuario: usuario
+    }]);
 
   if (error) {
     console.error(error);
@@ -65,23 +62,13 @@ function limparFormularioManutencao() {
   dataManutencao.value = "";
 }
 
-/* CARREGAR HISTÓRICO */
-async function carregarTabela(f = {}) {
-  let q = supabaseClient
+/* CARREGAR TABELA */
+async function carregarTabela() {
+  const { data, error } = await supabaseClient
     .from("manutencoes")
     .select("*")
     .order("id", { ascending: false });
 
-  if (f.func) q = q.ilike("funcionario", `%${f.func}%`);
-  if (f.setor) q = q.ilike("setor", `%${f.setor}%`);
-  if (f.cidade) q = q.ilike("cidade", `%${f.cidade}%`);
-  if (f.equip) q = q.ilike("equipamento", `%${f.equip}%`);
-  if (f.serial) q = q.ilike("serial", `%${f.serial}%`);
-  if (f.tipo) q = q.eq("tipo", f.tipo);
-  if (f.ini) q = q.gte("data_manutencao", f.ini);
-  if (f.fim) q = q.lte("data_manutencao", f.fim);
-
-  const { data, error } = await q;
   if (error) {
     console.error(error);
     return;
@@ -104,20 +91,6 @@ async function carregarTabela(f = {}) {
         <td>${d.usuario || "-"}</td>
       </tr>
     `;
-  });
-}
-
-/* FILTROS */
-function aplicarFiltros() {
-  carregarTabela({
-    func: fFunc.value,
-    setor: fSetor.value,
-    cidade: fCidade.value,
-    equip: fEquip.value,
-    serial: fSerial.value,
-    tipo: fTipo.value,
-    ini: fInicio.value,
-    fim: fFim.value
   });
 }
 
