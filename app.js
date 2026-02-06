@@ -20,21 +20,60 @@ document.addEventListener("input", e => {
   }
 });
 
+/* ADICIONAR NOVO EQUIPAMENTO */
+function adicionarEquipamento() {
+  const container = document.getElementById("listaEquipamentos");
+
+  container.insertAdjacentHTML("beforeend", `
+    <div class="row g-2 mb-2 equipamento-item">
+      <div class="col-md-5">
+        <input class="form-control text-uppercase equipamento" placeholder="Equipamento">
+      </div>
+      <div class="col-md-5">
+        <input class="form-control text-uppercase serial" placeholder="Serial">
+      </div>
+      <div class="col-md-2 d-grid">
+        <button type="button" class="btn btn-outline-danger" onclick="this.closest('.equipamento-item').remove()">–</button>
+      </div>
+    </div>
+  `);
+}
+
+/* REGISTRAR ENTREGA (MÚLTIPLOS ITENS) */
 async function registrarEntrega() {
-  if (!funcionario.value || !equipamento.value || !dataEntrega.value) {
-    alert("Preencha os campos obrigatórios");
+  if (!funcionario.value || !dataEntrega.value) {
+    alert("Informe o funcionário e a data da entrega");
     return;
   }
 
-  const { error } = await supabaseClient.from("entregas").insert([{
-    funcionario: funcionario.value,
-    setor: setor.value,
-    equipamento: equipamento.value,
-    serial: serial.value || null,
-    data_entrega: dataEntrega.value,
-    status: "EM USO",
-    usuario: usuario
-  }]);
+  const itens = document.querySelectorAll(".equipamento-item");
+  const registros = [];
+
+  itens.forEach(item => {
+    const equip = item.querySelector(".equipamento").value.trim();
+    const serial = item.querySelector(".serial").value.trim();
+
+    if (equip) {
+      registros.push({
+        funcionario: funcionario.value,
+        setor: setor.value,
+        equipamento: equip,
+        serial: serial || null,
+        data_entrega: dataEntrega.value,
+        status: "EM USO",
+        usuario: usuario
+      });
+    }
+  });
+
+  if (registros.length === 0) {
+    alert("Adicione pelo menos um equipamento");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("entregas")
+    .insert(registros);
 
   if (error) {
     alert("Erro ao registrar");
@@ -42,15 +81,32 @@ async function registrarEntrega() {
     return;
   }
 
-  funcionario.value = "";
-  setor.value = "";
-  equipamento.value = "";
-  serial.value = "";
-  dataEntrega.value = "";
-
+  limparFormulario();
   carregarTabela();
 }
 
+/* LIMPAR FORMULÁRIO */
+function limparFormulario() {
+  funcionario.value = "";
+  setor.value = "";
+  dataEntrega.value = "";
+
+  document.getElementById("listaEquipamentos").innerHTML = `
+    <div class="row g-2 mb-2 equipamento-item">
+      <div class="col-md-5">
+        <input class="form-control text-uppercase equipamento" placeholder="Equipamento">
+      </div>
+      <div class="col-md-5">
+        <input class="form-control text-uppercase serial" placeholder="Serial">
+      </div>
+      <div class="col-md-2 d-grid">
+        <button type="button" class="btn btn-outline-success" onclick="adicionarEquipamento()">+</button>
+      </div>
+    </div>
+  `;
+}
+
+/* CARREGAR TABELA */
 async function carregarTabela() {
   const { data, error } = await supabaseClient
     .from("entregas")
@@ -86,6 +142,7 @@ async function carregarTabela() {
   });
 }
 
+/* DEVOLVER */
 async function devolver(id) {
   if (!confirm("Confirmar devolução do equipamento?")) return;
 
@@ -93,7 +150,10 @@ async function devolver(id) {
 
   const { error } = await supabaseClient
     .from("entregas")
-    .update({ status: "DEVOLVIDO", data_devolucao: hoje })
+    .update({
+      status: "DEVOLVIDO",
+      data_devolucao: hoje
+    })
     .eq("id", id);
 
   if (error) {
@@ -105,6 +165,7 @@ async function devolver(id) {
   carregarTabela();
 }
 
+/* LOGOUT */
 function logout() {
   localStorage.removeItem("usuarioLogado");
   window.location.href = "index.html";
