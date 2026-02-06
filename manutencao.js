@@ -1,81 +1,56 @@
 if (!localStorage.getItem("usuarioLogado")) {
-  window.location.href = "index.html";
+  location.href = "index.html";
 }
 
-/* SUPABASE */
 const SUPABASE_URL = "https://dehcelrslysgnfbulaer.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlaGNlbHJzbHlzZ25mYnVsYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzOTIxMTksImV4cCI6MjA4Mzk2ODExOX0.2BPHu1yLi7rB5O4BlgoTOAk4diXGa_nXO3HSdBHFtFw";
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* USUÁRIO */
 const usuario = localStorage.getItem("usuarioLogado");
 document.getElementById("usuario").innerText = "Usuário: " + usuario;
 
-/* REGISTRAR MANUTENÇÃO */
 async function registrarManutencao() {
   if (!funcionario.value || !equipamento.value || !dataManutencao.value) {
-    alert("Preencha os campos obrigatórios");
+    alert("Campos obrigatórios não preenchidos");
     return;
   }
 
-  const { error } = await supabaseClient
-    .from("manutencoes")
-    .insert([{
-      funcionario: funcionario.value,
-      setor: setor.value,
-      cidade: cidade.value,
-      equipamento: equipamento.value,
-      serial: serial.value || null,
-      tipo: tipo.value,
-      descricao: descricao.value,
-      custo: custo.value || null,
-      data_manutencao: dataManutencao.value,
-      usuario: usuario
-    }]);
+  await supabaseClient.from("manutencoes").insert([{
+    funcionario: funcionario.value,
+    setor: setor.value,
+    cidade: cidade.value,
+    equipamento: equipamento.value,
+    serial: serial.value || null,
+    tipo: tipo.value,
+    descricao: descricao.value,
+    custo: custo.value || null,
+    data_manutencao: dataManutencao.value,
+    usuario: usuario
+  }]);
 
-  if (error) {
-    console.error(error);
-    alert("Erro ao registrar manutenção");
-    return;
-  }
-
-  alert("Manutenção registrada com sucesso");
-
-  limparFormularioManutencao();
+  limpar();
   carregarTabela();
 }
 
-/* LIMPAR FORMULÁRIO */
-function limparFormularioManutencao() {
-  funcionario.value = "";
-  setor.value = "";
-  cidade.value = "";
-  equipamento.value = "";
-  serial.value = "";
-  tipo.value = "";
-  descricao.value = "";
-  custo.value = "";
-  dataManutencao.value = "";
+function limpar() {
+  document.querySelectorAll("input, textarea, select").forEach(el => el.value = "");
 }
 
-/* CARREGAR TABELA */
 async function carregarTabela() {
-  const { data, error } = await supabaseClient
-    .from("manutencoes")
-    .select("*")
-    .order("id", { ascending: false });
+  let query = supabaseClient.from("manutencoes").select("*");
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+  if (fFuncionario.value) query = query.ilike("funcionario", `%${fFuncionario.value}%`);
+  if (fSetor.value) query = query.ilike("setor", `%${fSetor.value}%`);
+  if (fCidade.value) query = query.ilike("cidade", `%${fCidade.value}%`);
+  if (fEquipamento.value) query = query.ilike("equipamento", `%${fEquipamento.value}%`);
+  if (fTipo.value) query = query.eq("tipo", fTipo.value);
+  if (dataIni.value) query = query.gte("data_manutencao", dataIni.value);
+  if (dataFim.value) query = query.lte("data_manutencao", dataFim.value);
+
+  const { data } = await query.order("id", { ascending: false });
 
   tabela.innerHTML = "";
-
   data.forEach(d => {
     tabela.innerHTML += `
       <tr>
@@ -84,20 +59,19 @@ async function carregarTabela() {
         <td>${d.cidade || "-"}</td>
         <td>${d.equipamento}</td>
         <td>${d.serial || "-"}</td>
-        <td>${d.tipo || "-"}</td>
-        <td class="descricao">${d.descricao || "-"}</td>
+        <td>${d.tipo}</td>
+        <td class="descricao">${d.descricao}</td>
         <td>${d.custo ? "R$ " + d.custo : "-"}</td>
         <td>${new Date(d.data_manutencao).toLocaleDateString("pt-BR")}</td>
-        <td>${d.usuario || "-"}</td>
+        <td>${d.usuario}</td>
       </tr>
     `;
   });
 }
 
-/* LOGOUT */
 function logout() {
   localStorage.removeItem("usuarioLogado");
-  window.location.href = "index.html";
+  location.href = "index.html";
 }
 
 document.addEventListener("DOMContentLoaded", carregarTabela);
