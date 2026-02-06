@@ -1,129 +1,125 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Registro de Manutenção</title>
+<meta charset="UTF-8">
+<title>Registro de Manutenção</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    body {
-      font-size: 0.85rem;
-    }
-
-    .container {
-      max-width: 1400px;
-      padding-left: 12px;
-      padding-right: 12px;
-    }
-
-    table {
-      font-size: 0.75rem;
-    }
-
-    th {
-      position: sticky;
-      top: 0;
-      background: #f8f9fa;
-      z-index: 2;
-    }
-
-    td.descricao {
-      white-space: normal !important;
-      word-break: break-word;
-      max-width: 280px;
-    }
-
-    .table-responsive {
-      overflow-x: auto;
-    }
-
-    input, textarea, select {
-      text-transform: uppercase;
-    }
-
-    textarea {
-      resize: vertical;
-    }
-
-    .navbar button {
-      font-size: 0.8rem;
-    }
-  </style>
+<style>
+  body { font-size: 0.8rem; }
+  .container { max-width: 1400px; padding: 12px; }
+  table { font-size: 0.75rem; }
+  th { position: sticky; top: 0; background: #f8f9fa; z-index: 2; }
+  td.descricao { white-space: normal; word-break: break-word; max-width: 280px; }
+  input, textarea, select { text-transform: uppercase; }
+  .table-responsive { overflow-x: auto; }
+</style>
 </head>
 
 <body class="bg-light">
 
 <nav class="navbar navbar-dark bg-primary px-3 d-flex justify-content-between">
   <span class="navbar-brand">Controle de Ativos Internos</span>
-
   <div class="d-flex gap-2 align-items-center">
     <span class="text-white" id="usuario"></span>
-    <button class="btn btn-sm btn-light" onclick="window.location.href='sistema.html'">Entregas</button>
+    <button class="btn btn-sm btn-light" onclick="location.href='sistema.html'">Entregas</button>
     <button class="btn btn-sm btn-warning">Manutenção</button>
     <button class="btn btn-sm btn-light" onclick="logout()">Sair</button>
   </div>
 </nav>
 
-<div class="container mt-4">
+<div class="container mt-3">
 
-  <!-- REGISTRO -->
-  <div class="card mb-4 p-3">
-    <h6>Registrar Manutenção</h6>
+<!-- REGISTRO -->
+<div class="card p-3 mb-3">
+<h6>Registrar Manutenção</h6>
 
-    <input id="funcionario" class="form-control mb-2 text-uppercase" placeholder="Funcionário">
-    <input id="setor" class="form-control mb-2 text-uppercase" placeholder="Setor">
-    <input id="cidade" class="form-control mb-2 text-uppercase" placeholder="Cidade">
+<div class="row g-2">
+  <div class="col-md-4"><input id="funcionario" class="form-control" placeholder="Funcionário"></div>
+  <div class="col-md-4"><input id="setor" class="form-control" placeholder="Setor"></div>
+  <div class="col-md-4"><input id="cidade" class="form-control" placeholder="Cidade"></div>
+</div>
 
-    <input id="equipamento" class="form-control mb-2 text-uppercase" placeholder="Equipamento">
-    <input id="serial" class="form-control mb-2 text-uppercase" placeholder="Número de Série">
+<div class="row g-2 mt-2">
+  <div class="col-md-6"><input id="equipamento" class="form-control" placeholder="Equipamento"></div>
+  <div class="col-md-6"><input id="serial" class="form-control" placeholder="Número de Série"></div>
+</div>
 
-    <select id="tipo" class="form-control mb-2">
+<div class="row g-2 mt-2">
+  <div class="col-md-6">
+    <select id="tipo" class="form-control">
       <option value="">Tipo de Manutenção</option>
       <option value="PREVENTIVA">PREVENTIVA</option>
       <option value="CORRETIVA">CORRETIVA</option>
     </select>
-
-    <textarea id="descricao" class="form-control mb-2 text-uppercase" rows="3" placeholder="Descrição da Manutenção"></textarea>
-
-    <input id="custo" type="number" step="0.01" class="form-control mb-2" placeholder="Custo (Opcional)">
-
-    <label class="mt-2">Data da Manutenção</label>
-    <input id="dataManutencao" type="date" class="form-control mb-3">
-
-    <button class="btn btn-success w-100" onclick="registrarManutencao()">Registrar Manutenção</button>
   </div>
+</div>
 
-  <!-- HISTÓRICO -->
-  <div class="card p-3">
-    <h6>Histórico de Manutenções</h6>
+<textarea id="descricao" class="form-control mt-2" rows="3" placeholder="Descrição da Manutenção"></textarea>
 
-    <div class="table-responsive">
-      <table class="table table-striped table-sm">
-        <thead>
-          <tr>
-            <th>Funcionário</th>
-            <th>Setor</th>
-            <th>Cidade</th>
-            <th>Equipamento</th>
-            <th>Serial</th>
-            <th>Tipo</th>
-            <th>Descrição</th>
-            <th>Custo</th>
-            <th>Data</th>
-            <th>Usuário</th>
-          </tr>
-        </thead>
-        <tbody id="tabela"></tbody>
-      </table>
-    </div>
+<div class="row g-2 mt-2">
+  <div class="col-md-6"><input id="custo" type="number" step="0.01" class="form-control" placeholder="Custo (Opcional)"></div>
+  <div class="col-md-6"><input id="dataManutencao" type="date" class="form-control"></div>
+</div>
+
+<button class="btn btn-success mt-3 w-100" onclick="registrarManutencao()">Registrar Manutenção</button>
+</div>
+
+<!-- FILTROS -->
+<div class="card p-3 mb-3">
+<h6>Filtros</h6>
+
+<div class="row g-2">
+  <div class="col-md-2"><input id="fFuncionario" class="form-control" placeholder="Funcionário"></div>
+  <div class="col-md-2"><input id="fSetor" class="form-control" placeholder="Setor"></div>
+  <div class="col-md-2"><input id="fCidade" class="form-control" placeholder="Cidade"></div>
+  <div class="col-md-2"><input id="fEquipamento" class="form-control" placeholder="Equipamento"></div>
+  <div class="col-md-2">
+    <select id="fTipo" class="form-control">
+      <option value="">Tipo</option>
+      <option value="PREVENTIVA">PREVENTIVA</option>
+      <option value="CORRETIVA">CORRETIVA</option>
+    </select>
   </div>
+  <div class="col-md-1"><input id="dataIni" type="date" class="form-control"></div>
+  <div class="col-md-1"><input id="dataFim" type="date" class="form-control"></div>
+</div>
+
+<button class="btn btn-primary mt-2" onclick="carregarTabela()">Filtrar</button>
+<button class="btn btn-outline-success mt-2" onclick="exportarExcel()">Exportar Excel</button>
+</div>
+
+<!-- TABELA -->
+<div class="card p-3">
+<h6>Histórico de Manutenções</h6>
+
+<div class="table-responsive">
+<table class="table table-striped table-sm">
+<thead>
+<tr>
+  <th>Funcionário</th>
+  <th>Setor</th>
+  <th>Cidade</th>
+  <th>Equipamento</th>
+  <th>Serial</th>
+  <th>Tipo</th>
+  <th>Descrição</th>
+  <th>Custo</th>
+  <th>Data</th>
+  <th>Usuário</th>
+</tr>
+</thead>
+<tbody id="tabela"></tbody>
+</table>
+</div>
+</div>
 
 </div>
 
 <script src="manutencao.js"></script>
+<script src="export.js"></script>
 </body>
 </html>
