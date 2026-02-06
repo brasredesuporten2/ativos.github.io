@@ -3,7 +3,7 @@ if (!localStorage.getItem("usuarioLogado")) {
 }
 
 const SUPABASE_URL = "https://dehcelrslysgnfbulaer.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlaGNlbHJzbHlzZ25mYnVsYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzOTIxMTksImV4cCI6MjA4Mzk2ODExOX0.2BPHu1yLi7rB5O4BlgoTOAk4diXGa_nXO3HSdBHFtFw";
+const SUPABASE_KEY = "SUA_CHAVE_ANON_AQUI";
 
 const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
@@ -20,7 +20,7 @@ document.addEventListener("input", e => {
   }
 });
 
-/* REGISTRAR */
+/* REGISTRAR MANUTENÇÃO */
 async function registrarManutencao() {
   if (!funcionario.value || !equipamento.value || !dataManutencao.value) {
     alert("Preencha os campos obrigatórios");
@@ -41,18 +41,36 @@ async function registrarManutencao() {
   }]);
 
   if (error) {
-    alert("Erro ao registrar");
     console.error(error);
+    alert("Erro ao registrar manutenção");
     return;
   }
 
-  alert("Manutenção registrada");
+  alert("Manutenção registrada com sucesso");
+
+  limparFormularioManutencao();
   carregarTabela();
 }
 
-/* CARREGAR + FILTROS */
+/* LIMPAR FORMULÁRIO */
+function limparFormularioManutencao() {
+  funcionario.value = "";
+  setor.value = "";
+  cidade.value = "";
+  equipamento.value = "";
+  serial.value = "";
+  tipo.value = "";
+  descricao.value = "";
+  custo.value = "";
+  dataManutencao.value = "";
+}
+
+/* CARREGAR HISTÓRICO */
 async function carregarTabela(f = {}) {
-  let q = supabaseClient.from("manutencoes").select("*").order("id", { ascending: false });
+  let q = supabaseClient
+    .from("manutencoes")
+    .select("*")
+    .order("id", { ascending: false });
 
   if (f.func) q = q.ilike("funcionario", `%${f.func}%`);
   if (f.setor) q = q.ilike("setor", `%${f.setor}%`);
@@ -64,7 +82,10 @@ async function carregarTabela(f = {}) {
   if (f.fim) q = q.lte("data_manutencao", f.fim);
 
   const { data, error } = await q;
-  if (error) return console.error(error);
+  if (error) {
+    console.error(error);
+    return;
+  }
 
   tabela.innerHTML = "";
 
@@ -76,16 +97,17 @@ async function carregarTabela(f = {}) {
         <td>${d.cidade || "-"}</td>
         <td>${d.equipamento}</td>
         <td>${d.serial || "-"}</td>
-        <td>${d.tipo}</td>
-        <td>${d.descricao}</td>
+        <td>${d.tipo || "-"}</td>
+        <td class="descricao">${d.descricao || "-"}</td>
         <td>${d.custo ? "R$ " + d.custo : "-"}</td>
         <td>${new Date(d.data_manutencao).toLocaleDateString("pt-BR")}</td>
+        <td>${d.usuario || "-"}</td>
       </tr>
     `;
   });
 }
 
-/* APLICAR FILTROS */
+/* FILTROS */
 function aplicarFiltros() {
   carregarTabela({
     func: fFunc.value,
