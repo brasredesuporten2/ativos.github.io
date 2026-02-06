@@ -149,6 +149,11 @@ thead th {
     overflow-x: scroll;
   }
 }
+   td.descricao {
+  white-space: normal !important;
+  word-break: break-word;
+  max-width: 280px;
+}
 
 </style>
 </head>
@@ -248,7 +253,10 @@ thead th {
   <th>Data</th>
 </tr>
 </thead>
-<tbody id="tabela"></tbody>
+<tbody id="tabela">
+   <td>${d.usuario || "-"}</td>
+<td class="descricao">${d.descricao}</td>
+</tbody>
 </table>
 </div>
 </div>
@@ -259,4 +267,5 @@ thead th {
 <script src="manutencao.js"></script>
 </body>
 </html>
+
 
