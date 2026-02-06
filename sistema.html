@@ -1,246 +1,95 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>Controle de Ativos Internos</title>
+  <meta charset="UTF-8">
+  <title>Controle de Ativos Internos</title>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<style>
-/* ===============================
-   BASE GLOBAL
-=============================== */
-body {
-  background: #f8f9fa;
-  font-size: 14px; /* ↓ fonte base */
-}
+  <style>
+    body { font-size: 0.85rem; }
 
-/* Container com padding controlado */
-.container-fluid {
-  padding-left: 16px;
-  padding-right: 16px;
-}
+    .table thead th {
+      position: sticky;
+      top: 0;
+      background: #f8f9fa;
+      z-index: 2;
+    }
 
-/* ===============================
-   NAVBAR
-=============================== */
-.navbar-brand {
-  font-size: 1.05rem;
-}
-
-.navbar .btn {
-  font-size: 0.78rem;
-  padding: 4px 10px;
-}
-
-/* ===============================
-   CARDS
-=============================== */
-.card {
-  border-radius: 6px;
-}
-
-.card h5,
-.card h6 {
-  font-size: 0.95rem;
-  margin-bottom: 10px;
-}
-
-/* ===============================
-   FORMULÁRIOS
-=============================== */
-.form-control,
-.form-select {
-  font-size: 0.82rem;
-  padding: 6px 8px;
-  height: auto;
-}
-
-textarea.form-control {
-  min-height: 70px;
-}
-
-/* Botões */
-.btn {
-  font-size: 0.8rem;
-  padding: 6px 10px;
-}
-
-.btn-success,
-.btn-primary {
-  padding: 7px;
-}
-
-/* ===============================
-   TABELAS
-=============================== */
-.table-container {
-  overflow-x: auto;
-}
-
-table {
-  font-size: 0.72rem; /* ↓ fonte da tabela */
-  white-space: nowrap;
-}
-
-.table th,
-.table td {
-  padding: 4px 6px;
-  vertical-align: middle;
-}
-
-/* Cabeçalho fixo */
-thead th {
-  position: sticky;
-  top: 0;
-  background: #f1f1f1;
-  z-index: 2;
-}
-
-/* Barra exportar fixa */
-.export-bar {
-  position: sticky;
-  top: 52px;
-  background: #fff;
-  z-index: 1;
-  padding-bottom: 6px;
-}
-
-/* ===============================
-   HD / NOTEBOOK (1366x768)
-=============================== */
-@media (max-width: 1366px) {
-  body {
-    font-size: 13px;
-  }
-
-  table {
-    font-size: 0.7rem;
-  }
-
-  .container-fluid {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-}
-
-/* ===============================
-   MOBILE
-=============================== */
-@media (max-width: 768px) {
-  body {
-    font-size: 12.5px;
-  }
-
-  .navbar-brand {
-    font-size: 0.95rem;
-  }
-
-  .card {
-    padding: 10px !important;
-  }
-
-  table {
-    font-size: 0.68rem;
-  }
-
-  /* Scroll horizontal sempre visível */
-  .table-container {
-    overflow-x: scroll;
-  }
-}
-
-</style>
+    .table-responsive {
+      overflow-x: auto;
+    }
+  </style>
 </head>
 
-<body>
+<body class="bg-light">
 
-<!-- NAVBAR -->
 <nav class="navbar navbar-dark bg-primary px-3 d-flex justify-content-between">
-  <span class="navbar-brand">Controle de Ativos Internos</span>
+  <span class="navbar-brand">Controle de Ativos - Entregas</span>
 
-  <div class="d-flex gap-2 align-items-center">
-    <a href="sistema.html" class="btn btn-sm btn-light">Entregas</a>
-    <a href="manutencao.html" class="btn btn-sm btn-warning">Manutenção</a>
-    <span class="text-white" id="usuario"></span>
+  <div>
+    <a href="manutencao.html" class="btn btn-sm btn-light me-2">Manutenção</a>
+    <span class="text-white me-3" id="usuario"></span>
     <button class="btn btn-sm btn-light" onclick="logout()">Sair</button>
   </div>
 </nav>
 
-<div class="container-fluid mt-4">
+<div class="container-fluid px-4 mt-3">
 
 <!-- REGISTRO -->
-<div class="card p-3 mb-4">
-<h5>Registrar Entrega</h5>
-
-<input id="funcionario" class="form-control mb-2 text-uppercase" placeholder="Funcionário">
-<input id="setor" class="form-control mb-2 text-uppercase" placeholder="Setor">
-
-<div id="listaEquipamentos">
-  <div class="row g-2 mb-2 equipamento-item">
-    <div class="col-md-5">
-      <input class="form-control equipamento text-uppercase" placeholder="Equipamento">
-    </div>
-    <div class="col-md-5">
-      <input class="form-control serial text-uppercase" placeholder="Nº de Série">
-    </div>
-    <div class="col-md-2 d-grid">
-      <button class="btn btn-outline-success" onclick="adicionarEquipamento()">+</button>
-    </div>
-  </div>
-</div>
-
-<label>Data da Entrega</label>
-<input type="date" id="dataEntrega" class="form-control mb-3">
-
-<button class="btn btn-success w-100" onclick="registrarEntrega()">Registrar Entrega</button>
-</div>
-
-<!-- FILTROS -->
 <div class="card p-3 mb-3">
-<h6>Filtros</h6>
+  <h6>Registrar Entrega</h6>
 
-<div class="row g-2">
-  <div class="col-md-2"><input id="fFunc" class="form-control text-uppercase" placeholder="Funcionário"></div>
-  <div class="col-md-2"><input id="fSetor" class="form-control text-uppercase" placeholder="Setor"></div>
-  <div class="col-md-2"><input id="fEquip" class="form-control text-uppercase" placeholder="Equipamento"></div>
-  <div class="col-md-2"><input id="fSerial" class="form-control text-uppercase" placeholder="Serial"></div>
-  <div class="col-md-2"><input id="fData" type="date" class="form-control"></div>
+  <div class="row g-2">
+    <div class="col-md-4">
+      <input id="funcionario" class="form-control text-uppercase" placeholder="Funcionário">
+    </div>
+    <div class="col-md-4">
+      <input id="setor" class="form-control text-uppercase" placeholder="Setor">
+    </div>
+    <div class="col-md-4">
+      <input type="date" id="dataEntrega" class="form-control">
+    </div>
 
-  <div class="col-md-2 d-grid">
-    <button class="btn btn-primary" onclick="aplicarFiltros()">Filtrar</button>
+    <div class="col-md-6">
+      <input id="equipamento" class="form-control text-uppercase" placeholder="Equipamento">
+    </div>
+    <div class="col-md-6">
+      <input id="serial" class="form-control text-uppercase" placeholder="Serial">
+    </div>
+
+    <div class="col-12 d-grid">
+      <button class="btn btn-success" onclick="registrarEntrega()">Registrar Entrega</button>
+    </div>
   </div>
-</div>
 </div>
 
 <!-- HISTÓRICO -->
 <div class="card p-3">
-<h5>Histórico de Ativos</h5>
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h6>Histórico de Ativos</h6>
+    <button class="btn btn-outline-success btn-sm" onclick="exportarExcel('tabelaEntregas')">
+      Exportar Excel
+    </button>
+  </div>
 
-<div class="export-bar">
-  <button class="btn btn-outline-success" onclick="exportarExcel('tabelaEntregas')">
-  Exportar Excel
-</button>
-
-</div>
-
-<div class="table-container">
-<table class="table table-striped">
-<thead>
-<tr>
-  <th>Funcionário</th>
-  <th>Setor</th>
-  <th>Equipamento</th>
-  <th>Serial</th>
-  <th>Entrega</th>
-  <th>Devolução</th>
-  <th>Status</th>
-  <th>Ação</th>
-</tr>
-</thead>
-<tbody id="tabelaEntregas"></tbody>
-</table>
-</div>
+  <div class="table-responsive">
+    <table class="table table-striped table-sm">
+      <thead>
+        <tr>
+          <th>Funcionário</th>
+          <th>Setor</th>
+          <th>Equipamento</th>
+          <th>Serial</th>
+          <th>Entrega</th>
+          <th>Devolução</th>
+          <th>Status</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaEntregas"></tbody>
+    </table>
+  </div>
 </div>
 
 </div>
@@ -250,4 +99,3 @@ thead th {
 <script src="export.js"></script>
 </body>
 </html>
-
