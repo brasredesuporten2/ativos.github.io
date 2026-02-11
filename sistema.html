@@ -19,6 +19,54 @@
     .table-responsive {
       overflow-x: auto;
     }
+
+    /* ESTILOS DOS FILTROS */
+    .filtros-container {
+      background-color: #e9ecef;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      align-items: flex-end;
+    }
+
+    .filtro-grupo {
+      display: flex;
+      flex-direction: column;
+      min-width: 180px;
+      flex: 1 1 180px;
+    }
+
+    .filtro-grupo label {
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: #495057;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+    }
+
+    .filtro-input, .filtro-select {
+      padding: 6px 10px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+
+    .btn-limpar-filtros {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      padding: 6px 15px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      height: 35px;
+    }
+
+    .btn-limpar-filtros:hover {
+      background-color: #5a6268;
+    }
   </style>
 </head>
 
@@ -79,6 +127,33 @@
     <button class="btn btn-outline-success btn-sm" onclick="exportarExcel('tabelaEntregas')">
       Exportar Excel
     </button>
+  </div>
+
+  <!-- FILTROS DO MÓDULO ENTREGA -->
+  <div class="filtros-container">
+    <div class="filtro-grupo">
+      <label>👤 FUNCIONÁRIO</label>
+      <input type="text" id="filtroFuncionarioEntrega" class="filtro-input" placeholder="Digite o funcionário">
+    </div>
+    <div class="filtro-grupo">
+      <label>🏢 SETOR</label>
+      <input type="text" id="filtroSetorEntrega" class="filtro-input" placeholder="Digite o setor">
+    </div>
+    <div class="filtro-grupo">
+      <label>💻 EQUIPAMENTO</label>
+      <input type="text" id="filtroEquipamentoEntrega" class="filtro-input" placeholder="Digite o equipamento">
+    </div>
+    <div class="filtro-grupo">
+      <label>📅 PERÍODO - INÍCIO</label>
+      <input type="date" id="filtroDataInicioEntrega" class="filtro-input">
+    </div>
+    <div class="filtro-grupo">
+      <label>📅 PERÍODO - FIM</label>
+      <input type="date" id="filtroDataFimEntrega" class="filtro-input">
+    </div>
+    <div class="filtro-grupo">
+      <button class="btn-limpar-filtros" onclick="limparFiltrosEntrega()">🗑️ LIMPAR FILTROS</button>
+    </div>
   </div>
 
   <div class="table-responsive">
