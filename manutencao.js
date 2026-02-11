@@ -13,6 +13,9 @@ const supabaseClient = window.supabase.createClient(
 const usuario = localStorage.getItem("usuarioLogado");
 document.getElementById("usuario").innerText = "Usuário: " + usuario;
 
+/* VARIÁVEL PARA ARMAZENAR TODOS OS DADOS DA TABELA */
+let todosDadosManutencoes = [];
+
 /* CAIXA ALTA EM TEMPO REAL */
 document.addEventListener("input", e => {
   if (e.target.classList.contains("text-uppercase")) {
@@ -72,9 +75,16 @@ async function carregarTabela() {
     return;
   }
 
+  todosDadosManutencoes = data;
+  exibirTabelaManutencoes(data);
+  configurarFiltrosManutencao();
+}
+
+/* FUNÇÃO PARA EXIBIR A TABELA */
+function exibirTabelaManutencoes(dados) {
   tabelaManutencao.innerHTML = "";
 
-  data.forEach(d => {
+  dados.forEach(d => {
     tabelaManutencao.innerHTML += `
       <tr>
         <td>${d.funcionario}</td>
@@ -95,6 +105,74 @@ async function carregarTabela() {
 function logout() {
   localStorage.removeItem("usuarioLogado");
   window.location.href = "index.html";
+}
+
+/* ========== FILTROS DO MÓDULO MANUTENÇÃO ========== */
+function configurarFiltrosManutencao() {
+  const filtros = [
+    "filtroFuncionarioManutencao",
+    "filtroSetorManutencao",
+    "filtroCidadeManutencao",
+    "filtroEquipamentoManutencao",
+    "filtroDataInicioManutencao",
+    "filtroDataFimManutencao"
+  ];
+
+  filtros.forEach(id => {
+    const elemento = document.getElementById(id);
+    if (elemento) {
+      elemento.removeEventListener("keyup", aplicarFiltrosManutencao);
+      elemento.removeEventListener("change", aplicarFiltrosManutencao);
+      elemento.addEventListener("keyup", aplicarFiltrosManutencao);
+      elemento.addEventListener("change", aplicarFiltrosManutencao);
+    }
+  });
+}
+
+function aplicarFiltrosManutencao() {
+  const funcionario = document.getElementById("filtroFuncionarioManutencao")?.value.toLowerCase() || "";
+  const setor = document.getElementById("filtroSetorManutencao")?.value.toLowerCase() || "";
+  const cidade = document.getElementById("filtroCidadeManutencao")?.value.toLowerCase() || "";
+  const equipamento = document.getElementById("filtroEquipamentoManutencao")?.value.toLowerCase() || "";
+  const dataInicio = document.getElementById("filtroDataInicioManutencao")?.value;
+  const dataFim = document.getElementById("filtroDataFimManutencao")?.value;
+
+  const dadosFiltrados = todosDadosManutencoes.filter(item => {
+    // Filtro de funcionário
+    if (funcionario && !item.funcionario?.toLowerCase().includes(funcionario)) return false;
+    
+    // Filtro de setor
+    if (setor && !item.setor?.toLowerCase().includes(setor)) return false;
+    
+    // Filtro de cidade
+    if (cidade && !item.cidade?.toLowerCase().includes(cidade)) return false;
+    
+    // Filtro de equipamento
+    if (equipamento && !item.equipamento?.toLowerCase().includes(equipamento)) return false;
+    
+    // Filtro de período
+    if (dataInicio || dataFim) {
+      const dataManutencao = item.data_manutencao;
+      if (!dataManutencao) return false;
+      
+      if (dataInicio && dataManutencao < dataInicio) return false;
+      if (dataFim && dataManutencao > dataFim) return false;
+    }
+    
+    return true;
+  });
+
+  exibirTabelaManutencoes(dadosFiltrados);
+}
+
+function limparFiltrosManutencao() {
+  document.getElementById("filtroFuncionarioManutencao").value = "";
+  document.getElementById("filtroSetorManutencao").value = "";
+  document.getElementById("filtroCidadeManutencao").value = "";
+  document.getElementById("filtroEquipamentoManutencao").value = "";
+  document.getElementById("filtroDataInicioManutencao").value = "";
+  document.getElementById("filtroDataFimManutencao").value = "";
+  exibirTabelaManutencoes(todosDadosManutencoes);
 }
 
 document.addEventListener("DOMContentLoaded", carregarTabela);
