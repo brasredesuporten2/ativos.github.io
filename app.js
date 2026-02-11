@@ -13,6 +13,9 @@ const supabaseClient = window.supabase.createClient(
 const usuario = localStorage.getItem("usuarioLogado");
 document.getElementById("usuario").innerText = "Usuário: " + usuario;
 
+/* VARIÁVEL PARA ARMAZENAR TODOS OS DADOS DA TABELA */
+let todosDadosEntregas = [];
+
 /* CAIXA ALTA EM TEMPO REAL */
 document.addEventListener("input", e => {
   if (e.target.classList.contains("text-uppercase")) {
@@ -118,9 +121,16 @@ async function carregarTabela() {
     return;
   }
 
+  todosDadosEntregas = data;
+  exibirTabelaEntregas(data);
+  configurarFiltrosEntrega();
+}
+
+/* FUNÇÃO PARA EXIBIR A TABELA */
+function exibirTabelaEntregas(dados) {
   tabelaEntregas.innerHTML = "";
 
-  data.forEach(d => {
+  dados.forEach(d => {
     tabelaEntregas.innerHTML += `
       <tr>
         <td>${d.funcionario}</td>
@@ -169,6 +179,68 @@ async function devolver(id) {
 function logout() {
   localStorage.removeItem("usuarioLogado");
   window.location.href = "index.html";
+}
+
+/* ========== FILTROS DO MÓDULO ENTREGA ========== */
+function configurarFiltrosEntrega() {
+  const filtros = [
+    "filtroFuncionarioEntrega",
+    "filtroSetorEntrega", 
+    "filtroEquipamentoEntrega",
+    "filtroDataInicioEntrega",
+    "filtroDataFimEntrega"
+  ];
+
+  filtros.forEach(id => {
+    const elemento = document.getElementById(id);
+    if (elemento) {
+      elemento.removeEventListener("keyup", aplicarFiltrosEntrega);
+      elemento.removeEventListener("change", aplicarFiltrosEntrega);
+      elemento.addEventListener("keyup", aplicarFiltrosEntrega);
+      elemento.addEventListener("change", aplicarFiltrosEntrega);
+    }
+  });
+}
+
+function aplicarFiltrosEntrega() {
+  const funcionario = document.getElementById("filtroFuncionarioEntrega")?.value.toLowerCase() || "";
+  const setor = document.getElementById("filtroSetorEntrega")?.value.toLowerCase() || "";
+  const equipamento = document.getElementById("filtroEquipamentoEntrega")?.value.toLowerCase() || "";
+  const dataInicio = document.getElementById("filtroDataInicioEntrega")?.value;
+  const dataFim = document.getElementById("filtroDataFimEntrega")?.value;
+
+  const dadosFiltrados = todosDadosEntregas.filter(item => {
+    // Filtro de funcionário
+    if (funcionario && !item.funcionario?.toLowerCase().includes(funcionario)) return false;
+    
+    // Filtro de setor
+    if (setor && !item.setor?.toLowerCase().includes(setor)) return false;
+    
+    // Filtro de equipamento
+    if (equipamento && !item.equipamento?.toLowerCase().includes(equipamento)) return false;
+    
+    // Filtro de período
+    if (dataInicio || dataFim) {
+      const dataEntrega = item.data_entrega;
+      if (!dataEntrega) return false;
+      
+      if (dataInicio && dataEntrega < dataInicio) return false;
+      if (dataFim && dataEntrega > dataFim) return false;
+    }
+    
+    return true;
+  });
+
+  exibirTabelaEntregas(dadosFiltrados);
+}
+
+function limparFiltrosEntrega() {
+  document.getElementById("filtroFuncionarioEntrega").value = "";
+  document.getElementById("filtroSetorEntrega").value = "";
+  document.getElementById("filtroEquipamentoEntrega").value = "";
+  document.getElementById("filtroDataInicioEntrega").value = "";
+  document.getElementById("filtroDataFimEntrega").value = "";
+  exibirTabelaEntregas(todosDadosEntregas);
 }
 
 document.addEventListener("DOMContentLoaded", carregarTabela);
