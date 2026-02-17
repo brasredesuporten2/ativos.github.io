@@ -19,6 +19,7 @@ function exportarExcel(tabelaId) {
 
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.download = "manutencao_" + new Date().toISOString().slice(0,10) + ".csv";
+  link.download = "ativos_manut_" + new Date().toISOString().slice(0,10) + ".csv";
   link.click();
 }
+
