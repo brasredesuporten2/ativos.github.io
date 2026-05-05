@@ -1,114 +1,124 @@
-async function verificarAcesso() {
-  const { data: { session }, error } = await supabaseClient.auth.getSession();
-
-  if (error || !session) {
-    window.location.href = "index.html";
-    return;
-  }
-
-  // Extrai o nome do e-mail (robson@sistema.local -> robson)
-  const nomeExibicao = session.user.email.split('@')[0];
-  document.getElementById("usuario").innerText = "Usuário: " + nomeExibicao.toUpperCase();
-}
-
-// Executa a verificação
-verificarAcesso();
-
-// Atualize sua função de logout
-async function logout() {
-  await supabaseClient.auth.signOut();
-  localStorage.removeItem("usuarioLogado");
-  window.location.href = "index.html";
-}
-
-if (!localStorage.getItem("usuarioLogado")) {
-  window.location.href = "index.html";
-}
-
+/* 1. CONFIGURAÇÃO E INICIALIZAÇÃO (SEMPRE NO TOPO) */
 const SUPABASE_URL = "https://dehcelrslysgnfbulaer.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlaGNlbHJzbHlzZ25mYnVsYWVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgzOTIxMTksImV4cCI6MjA4Mzk2ODExOX0.2BPHu1yLi7rB5O4BlgoTOAk4diXGa_nXO3HSdBHFtFw";
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+// Inicializa o cliente primeiro para evitar ReferenceError
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const usuario = localStorage.getItem("usuarioLogado");
-document.getElementById("usuario").innerText = "Usuário: " + usuario;
-
-/* VARIÁVEL PARA ARMAZENAR TODOS OS DADOS DA TABELA */
+let usuarioLogadoNome = "";
 let todosDadosManutencoes = [];
 
-/* CAIXA ALTA EM TEMPO REAL */
+/* 2. CONTROLE DE ACESSO E AUTENTICAÇÃO */
+async function verificarAcesso() {
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+    // Se não houver sessão ativa no Supabase, volta para o login
+    if (error || !session) {
+        window.location.href = "index.html";
+        return;
+    }
+
+    // Extrai o nome do usuário da sessão atual
+    usuarioLogadoNome = session.user.email.split('@')[0].toUpperCase();
+    
+    const elementoUsuario = document.getElementById("usuario");
+    if (elementoUsuario) {
+        elementoUsuario.innerText = "Usuário: " + usuarioLogadoNome;
+    }
+
+    // Carrega os dados após confirmar o acesso
+    carregarTabela();
+}
+
+// Executa a verificação imediatamente
+verificarAcesso();
+
+async function logout() {
+    await supabaseClient.auth.signOut();
+    localStorage.removeItem("usuarioLogado");
+    window.location.href = "index.html";
+}
+
+/* 3. LÓGICA DO MÓDULO DE MANUTENÇÃO */
+
+// Caixa alta em tempo real
 document.addEventListener("input", e => {
-  if (e.target.classList.contains("text-uppercase")) {
-    e.target.value = e.target.value.toUpperCase();
-  }
+    if (e.target.classList.contains("text-uppercase")) {
+        e.target.value = e.target.value.toUpperCase();
+    }
 });
 
 async function registrarManutencao() {
-  if (!funcionario.value || !equipamento.value || !dataManutencao.value) {
-    alert("Preencha os campos obrigatórios");
-    return;
-  }
+    const func = document.getElementById("funcionario");
+    const equip = document.getElementById("equipamento");
+    const dataM = document.getElementById("dataManutencao");
 
-  const { error } = await supabaseClient.from("manutencoes").insert([{
-    funcionario: funcionario.value,
-    setor: setor.value,
-    cidade: cidade.value,
-    equipamento: equipamento.value,
-    serial: serial.value || null,
-    tipo: tipo.value,
-    descricao: descricao.value,
-    custo: custo.value || null,
-    data_manutencao: dataManutencao.value,
-    usuario: usuario
-  }]);
+    if (!func.value || !equip.value || !dataM.value) {
+        alert("Preencha os campos obrigatórios");
+        return;
+    }
 
-  if (error) {
-    alert("Erro ao registrar");
-    console.error(error);
-    return;
-  }
+    const registro = {
+        funcionario: func.value.toUpperCase(),
+        setor: document.getElementById("setor").value.toUpperCase(),
+        cidade: document.getElementById("cidade").value.toUpperCase(),
+        equipamento: equip.value.toUpperCase(),
+        serial: document.getElementById("serial").value.toUpperCase() || null,
+        tipo: document.getElementById("tipo").value,
+        descricao: document.getElementById("descricao").value.toUpperCase(),
+        custo: document.getElementById("custo").value || null,
+        data_manutencao: dataM.value,
+        usuario: usuarioLogadoNome // Usa o nome da sessão ativa
+    };
 
-  limparFormulario();
-  carregarTabela();
+    const { error } = await supabaseClient
+        .from("manutencoes")
+        .insert([registro]);
+
+    if (error) {
+        alert("Erro ao registrar manutenção no banco.");
+        console.error(error);
+        return;
+    }
+
+    limparFormulario();
+    carregarTabela();
 }
 
 function limparFormulario() {
-  funcionario.value = "";
-  setor.value = "";
-  cidade.value = "";
-  equipamento.value = "";
-  serial.value = "";
-  tipo.value = "";
-  descricao.value = "";
-  custo.value = "";
-  dataManutencao.value = "";
+    document.getElementById("funcionario").value = "";
+    document.getElementById("setor").value = "";
+    document.getElementById("cidade").value = "";
+    document.getElementById("equipamento").value = "";
+    document.getElementById("serial").value = "";
+    document.getElementById("tipo").value = "";
+    document.getElementById("descricao").value = "";
+    document.getElementById("custo").value = "";
+    document.getElementById("dataManutencao").value = "";
 }
 
 async function carregarTabela() {
-  const { data, error } = await supabaseClient
-    .from("manutencoes")
-    .select("*")
-    .order("id", { ascending: false });
+    const { data, error } = await supabaseClient
+        .from("manutencoes")
+        .select("*")
+        .order("id", { ascending: false });
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+    if (error) {
+        console.error("Erro ao buscar dados:", error);
+        return;
+    }
 
-  todosDadosManutencoes = data;
-  exibirTabelaManutencoes(data);
-  configurarFiltrosManutencao();
+    todosDadosManutencoes = data;
+    exibirTabelaManutencoes(data);
+    configurarFiltrosManutencao();
 }
 
-/* FUNÇÃO PARA EXIBIR A TABELA */
 function exibirTabelaManutencoes(dados) {
-  tabelaManutencao.innerHTML = "";
+    const tabelaBody = document.getElementById("tabelaManutencao");
+    tabelaBody.innerHTML = "";
 
-  dados.forEach(d => {
-    tabelaManutencao.innerHTML += `
+    dados.forEach(d => {
+        tabelaBody.innerHTML += `
       <tr>
         <td>${d.funcionario}</td>
         <td>${d.setor || "-"}</td>
@@ -122,80 +132,61 @@ function exibirTabelaManutencoes(dados) {
         <td>${d.usuario}</td>
       </tr>
     `;
-  });
+    });
 }
 
-function logout() {
-  localStorage.removeItem("usuarioLogado");
-  window.location.href = "index.html";
-}
-
-/* ========== FILTROS DO MÓDULO MANUTENÇÃO ========== */
+/* 4. FILTROS */
 function configurarFiltrosManutencao() {
-  const filtros = [
-    "filtroFuncionarioManutencao",
-    "filtroSetorManutencao",
-    "filtroCidadeManutencao",
-    "filtroEquipamentoManutencao",
-    "filtroDataInicioManutencao",
-    "filtroDataFimManutencao"
-  ];
+    const filtrosIds = [
+        "filtroFuncionarioManutencao",
+        "filtroSetorManutencao",
+        "filtroCidadeManutencao",
+        "filtroEquipamentoManutencao",
+        "filtroDataInicioManutencao",
+        "filtroDataFimManutencao"
+    ];
 
-  filtros.forEach(id => {
-    const elemento = document.getElementById(id);
-    if (elemento) {
-      elemento.removeEventListener("keyup", aplicarFiltrosManutencao);
-      elemento.removeEventListener("change", aplicarFiltrosManutencao);
-      elemento.addEventListener("keyup", aplicarFiltrosManutencao);
-      elemento.addEventListener("change", aplicarFiltrosManutencao);
-    }
-  });
+    filtrosIds.forEach(id => {
+        const elemento = document.getElementById(id);
+        if (elemento) {
+            elemento.addEventListener("keyup", aplicarFiltrosManutencao);
+            elemento.addEventListener("change", aplicarFiltrosManutencao);
+        }
+    });
 }
 
 function aplicarFiltrosManutencao() {
-  const funcionario = document.getElementById("filtroFuncionarioManutencao")?.value.toLowerCase() || "";
-  const setor = document.getElementById("filtroSetorManutencao")?.value.toLowerCase() || "";
-  const cidade = document.getElementById("filtroCidadeManutencao")?.value.toLowerCase() || "";
-  const equipamento = document.getElementById("filtroEquipamentoManutencao")?.value.toLowerCase() || "";
-  const dataInicio = document.getElementById("filtroDataInicioManutencao")?.value;
-  const dataFim = document.getElementById("filtroDataFimManutencao")?.value;
+    const funcF = document.getElementById("filtroFuncionarioManutencao")?.value.toLowerCase() || "";
+    const setorF = document.getElementById("filtroSetorManutencao")?.value.toLowerCase() || "";
+    const cidadeF = document.getElementById("filtroCidadeManutencao")?.value.toLowerCase() || "";
+    const equipF = document.getElementById("filtroEquipamentoManutencao")?.value.toLowerCase() || "";
+    const dataIni = document.getElementById("filtroDataInicioManutencao")?.value;
+    const dataFim = document.getElementById("filtroDataFimManutencao")?.value;
 
-  const dadosFiltrados = todosDadosManutencoes.filter(item => {
-    // Filtro de funcionário
-    if (funcionario && !item.funcionario?.toLowerCase().includes(funcionario)) return false;
-    
-    // Filtro de setor
-    if (setor && !item.setor?.toLowerCase().includes(setor)) return false;
-    
-    // Filtro de cidade
-    if (cidade && !item.cidade?.toLowerCase().includes(cidade)) return false;
-    
-    // Filtro de equipamento
-    if (equipamento && !item.equipamento?.toLowerCase().includes(equipamento)) return false;
-    
-    // Filtro de período
-    if (dataInicio || dataFim) {
-      const dataManutencao = item.data_manutencao;
-      if (!dataManutencao) return false;
-      
-      if (dataInicio && dataManutencao < dataInicio) return false;
-      if (dataFim && dataManutencao > dataFim) return false;
-    }
-    
-    return true;
-  });
+    const filtrados = todosDadosManutencoes.filter(item => {
+        if (funcF && !item.funcionario?.toLowerCase().includes(funcF)) return false;
+        if (setorF && !item.setor?.toLowerCase().includes(setorF)) return false;
+        if (cidadeF && !item.cidade?.toLowerCase().includes(cidadeF)) return false;
+        if (equipF && !item.equipamento?.toLowerCase().includes(equipF)) return false;
+        
+        if (dataIni || dataFim) {
+            const dataItem = item.data_manutencao;
+            if (!dataItem) return false;
+            if (dataIni && dataItem < dataIni) return false;
+            if (dataFim && dataItem > dataFim) return false;
+        }
+        return true;
+    });
 
-  exibirTabelaManutencoes(dadosFiltrados);
+    exibirTabelaManutencoes(filtrados);
 }
 
 function limparFiltrosManutencao() {
-  document.getElementById("filtroFuncionarioManutencao").value = "";
-  document.getElementById("filtroSetorManutencao").value = "";
-  document.getElementById("filtroCidadeManutencao").value = "";
-  document.getElementById("filtroEquipamentoManutencao").value = "";
-  document.getElementById("filtroDataInicioManutencao").value = "";
-  document.getElementById("filtroDataFimManutencao").value = "";
-  exibirTabelaManutencoes(todosDadosManutencoes);
+    document.getElementById("filtroFuncionarioManutencao").value = "";
+    document.getElementById("filtroSetorManutencao").value = "";
+    document.getElementById("filtroCidadeManutencao").value = "";
+    document.getElementById("filtroEquipamentoManutencao").value = "";
+    document.getElementById("filtroDataInicioManutencao").value = "";
+    document.getElementById("filtroDataFimManutencao").value = "";
+    exibirTabelaManutencoes(todosDadosManutencoes);
 }
-
-document.addEventListener("DOMContentLoaded", carregarTabela);
