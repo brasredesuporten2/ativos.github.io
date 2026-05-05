@@ -19,7 +19,7 @@ async function verificarAcesso() {
         return;
     }
 
-    // Extrai o nome do e-mail (robson@sistema.local -> ROBSON)
+    // Extrai o nome do e-mail
     usuarioLogadoNome = session.user.email.split('@')[0].toUpperCase();
     
     // Atualiza a interface com o nome do usuário
