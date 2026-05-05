@@ -1,3 +1,26 @@
+async function verificarAcesso() {
+  const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+  if (error || !session) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  // Extrai o nome do e-mail (robson@sistema.local -> robson)
+  const nomeExibicao = session.user.email.split('@')[0];
+  document.getElementById("usuario").innerText = "Usuário: " + nomeExibicao.toUpperCase();
+}
+
+// Executa a verificação
+verificarAcesso();
+
+// Atualize sua função de logout
+async function logout() {
+  await supabaseClient.auth.signOut();
+  localStorage.removeItem("usuarioLogado");
+  window.location.href = "index.html";
+}
+
 if (!localStorage.getItem("usuarioLogado")) {
   window.location.href = "index.html";
 }
